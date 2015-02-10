@@ -1,0 +1,5 @@
+{
+    "require": {
+        "silex/silex": "1.2.3", "twig/twig": "1.18.0", "doctrine/dbal": "2.5.1"
+    }
+}

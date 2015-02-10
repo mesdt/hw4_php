@@ -1,0 +1,29 @@
+{% extends "BASE.twig" %}
+
+{% block rows %}
+    <h1>{{ student.name }}</h1>
+    <form method="POST" action="/students/{{ student.id }}/scores">
+        <input type="hidden" name="_method" value="PUT">
+        <table class="table">
+            <caption>Оценки</caption>
+            <thead>
+            <tr>
+                <th>Предмет</th>
+                <th>Оценка</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for subject in subjects %}
+                <tr>
+                    <td>{{ subject.name }}</td>
+                    <td><input name="scores[{{ subject.id }}]" value="{{ scorez[subject.id] | default('') }}"
+                               type="number" min="1" max="100" class="form-control">
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <button type="button" class="btn btn-default" onclick="javascript:history.back()">Назад</button>
+    </form>
+{% endblock %}
