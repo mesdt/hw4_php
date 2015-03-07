@@ -7,9 +7,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 // Для php -S host:port -t web web/index.php, чтобы статика отдавалась
-if (php_sapi_name() === 'cli-server' && is_file(__DIR__ . preg_replace('/(\?.*)$/', '', $_SERVER['REQUEST_URI']))) {
+/*if (php_sapi_name() === 'cli-server' && is_file(__DIR__ . preg_replace('/(\?.*)$/', '', $_SERVER['REQUEST_URI']))) {
     return false;
-}
+}*/
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -47,11 +47,11 @@ $sapp->get('/students/{id}', function (Application $app, $id) {
 });
 
 $sapp->post('/students', function (Application $app, Request $req) {
-    /**@var $conn Connection */
-    $conn = $app['db'];
-    $name = $req->get('name');
-    $conn->insert('students', ['name' => $name]);
-    return $app->redirect('/');
+	/**@var $conn Connection */
+	$conn = $app['db'];
+	$name = $req->get('name');
+	$conn->insert('students', ['name' => $name]);
+	return $app->redirect('/');
 });
 
 $sapp->delete('/students/{id}', function (Application $app, $id) {
@@ -73,6 +73,36 @@ $sapp->put('/students/{id}/scores', function (Application $app, Request $req, $i
         }
     });
     return $app->redirect("/students/$id");
+});
+
+/* Lab 4 ajax */
+use Symfony\Component\HttpFoundation\ParameterBag;
+
+$sapp->before(function (Request $request) {
+    if (0 === strpos($request->headers->get('Content-Type'), 'application/json')) {
+        $data = json_decode($request->getContent(), true);
+        $request->request->replace(is_array($data) ? $data : array());
+    }
+});
+
+$sapp->delete('/students', function (Request $request) use ($sapp) {
+    /**@var $conn Connection */
+    $conn = $sapp['db'];
+	$id = $request->request->get('id');
+    $conn->delete('students', ['id' => $id]);
+    return $sapp->json("Удаление произведено успешно", 200);
+});
+
+$sapp->get('/students/{id}/grades', function ($id) use ($sapp) {
+    /**@var $conn Connection */
+    $conn = $sapp['db'];
+	$subjects = $conn->fetchAll('select * from subjects');
+    $scores = $conn->fetchAll('select * from scores where student_id = ?', [$id]);
+    $scorez = [];
+    foreach ($scores as $score) {
+        $scorez[$score['subject_id']] = $score['score'];
+    }
+    return $sapp->json(array('subjects'=>$subjects,'scorez'=>$scorez), 200);
 });
 
 $sapp->run();
